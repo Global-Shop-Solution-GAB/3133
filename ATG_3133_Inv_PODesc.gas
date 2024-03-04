@@ -1,0 +1,176 @@
+Program.Sub.ScreenSU.Start
+gui.Form1..create
+gui.Form1..caption("PO ALT Description")
+gui.Form1..size(6915,5685)
+gui.Form1..position(0,0)
+gui.Form1..event(unload,form1_unload)
+gui.Form1..alwaysontop(False)
+gui.Form1..fontname("Arial")
+gui.Form1..fontsize(8)
+gui.Form1..forecolor(0)
+gui.Form1..fontstyle(False,False,False,False,)
+gui.Form1..BackColor(-2147483633)
+gui.Form1..controlbox(True)
+gui.Form1..maxbutton(True)
+gui.Form1..minbutton(True)
+gui.Form1..mousepointer(0)
+gui.Form1..moveable(True)
+gui.Form1..sizeable(False)
+gui.Form1..ShowInTaskBar(True)
+gui.Form1..titlebar(True)
+gui.Form1.PartNolbl.create(label,"",True,3330,330,1,300,200,True,0,Arial,10,-2147483633,0)
+gui.Form1.PartNolbl.fontstyle(True,False,False,False)
+gui.Form1.Desclbl.create(label,"Description",True,1935,255,1,300,1125,True,0,Arial,9,-2147483633,0)
+gui.Form1.SaveBut.create(button)
+gui.Form1.SaveBut.caption("&Save")
+gui.Form1.SaveBut.visible(True)
+gui.Form1.SaveBut.size(855,375)
+gui.Form1.SaveBut.zorder(0)
+gui.Form1.SaveBut.position(2602,4400)
+gui.Form1.SaveBut.enabled(True)
+gui.Form1.SaveBut.fontname("Arial")
+gui.Form1.SaveBut.fontsize(10)
+gui.Form1.SaveBut.event(click,savebut_click)
+gui.Form1.ExitBut.create(button)
+gui.Form1.ExitBut.caption("E&xit")
+gui.Form1.ExitBut.visible(True)
+gui.Form1.ExitBut.size(855,375)
+gui.Form1.ExitBut.zorder(0)
+gui.Form1.ExitBut.position(3459,4400)
+gui.Form1.ExitBut.enabled(True)
+gui.Form1.ExitBut.fontname("Arial")
+gui.Form1.ExitBut.fontsize(8)
+gui.Form1.ExitBut.event(click,exitbut_click)
+gui.Form1.Loclbl.create(label,"",True,660,330,1,3730,200,True,0,Arial,10,-2147483633,0)
+gui.Form1.Loclbl.fontstyle(True,False,False,False)
+gui.Form1.Infolbl.create(label,"",True,1935,255,1,400,3200,True,0,Arial,10,-2147483633,0)
+gui.Form1.Infolbl.fontstyle(True,False,False,False)
+gui.Form1.AltDesctxt.create(textboxm)
+gui.Form1.AltDesctxt.text("")
+gui.Form1.AltDesctxt.visible(True)
+gui.Form1.AltDesctxt.size(6180,2640)
+gui.Form1.AltDesctxt.zorder(0)
+gui.Form1.AltDesctxt.position(285,1400)
+gui.Form1.AltDesctxt.enabled(True)
+gui.Form1.AltDesctxt.alignment(0)
+gui.Form1.AltDesctxt.fontname("Arial")
+gui.Form1.AltDesctxt.fontsize(8)
+gui.Form1.AltDesctxt.maxLength(510)
+gui.Form1.AltDesctxt.BackColor(-2147483643)
+
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.Global.currPart.Declare(String)
+Variable.Global.Loc.Declare(String)
+Program.Sub.Preflight.End
+
+
+Program.Sub.Main.Start
+'Function.Intrinsic.Debug.ShowCallerInfo
+Variable.Local.sqlSelect.Declare(String)
+Variable.Local.PartNo.Declare(String)
+Variable.Local.Location.Declare(String)
+Variable.Local.sqlUpd.Declare(String)
+Variable.Local.currDesc.Declare(String)
+
+Function.Intrinsic.Control.If(V.Passed.000008,"<>","")
+	Function.Intrinsic.String.GSSPartString(V.Passed.000007,V.Passed.000008,V.Local.PartNo)
+Function.Intrinsic.Control.Else
+	Variable.Local.PartNo.Set(V.Passed.000007)
+Function.Intrinsic.Control.EndIf
+Variable.Local.Location.Set(V.Passed.000009)
+
+Gui.Form1.PartNolbl.Caption(V.Local.PartNo)
+Gui.Form1.Loclbl.Caption(V.Local.Location)
+
+Function.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+'F.ODBC.Connection!conx.OpenConnection("Global_PLA","Master","master")
+
+'Error handler for part with Apostrophe when Querying Table
+Function.Intrinsic.String.Replace(V.Local.PartNo,"'","''",V.Local.PartNo)
+
+Function.Intrinsic.String.Concat("SELECT * FROM ATG_96_INV_PODESC WHERE PART='",V.Local.PartNo,"'","AND LOCATION='",V.Local.Location,"'",,V.Local.sqlSelect)
+
+Function.ODBC.Connection!conx.OpenRecordsetRW("rstSelect",V.Local.sqlSelect)
+Function.Intrinsic.Control.If(V.ODBC.conx!rstSelect.EOF,"=",False)
+	Function.Intrinsic.String.UCase(V.ODBC.conx!rstSelect.FieldValString!ALT_PODESC,V.Local.currDesc)
+	Function.Intrinsic.String.UCase(V.ODBC.conx!rstSelect.FieldValString!PART,V.Global.currPart)
+	Function.Intrinsic.String.Replace(V.Global.currPart,"'","''",V.Global.currPart)
+	Function.Intrinsic.String.UCase(V.ODBC.conx!rstSelect.FieldValString!LOCATION,V.Global.Loc)
+	Function.Intrinsic.String.Trim(V.Local.currDesc,V.Local.currDesc)
+Function.Intrinsic.Control.EndIf
+
+Gui.Form1.AltDesctxt.Text(V.Local.currDesc)
+Gui.Form1..Show
+Gui.Form1.AltDesctxt.SetFocus
+
+
+Function.ODBC.conx!rstSelect.Close
+
+
+
+
+
+Program.Sub.Main.End
+
+
+program.sub.form1_unload.start
+'F.Intrinsic.Control.If(Variable.ODBC.conx!rstUpdate.State,"=",1)
+'	Function.odbc.conx!rstUpdate.close
+'F.Intrinsic.Control.EndIf
+
+'F.Intrinsic.Control.If(Variable.ODBC.conx!rstInsert.State,"=",1)
+'	Function.odbc.conx!rstInsert.close
+'F.Intrinsic.Control.EndIf
+
+Function.Intrinsic.Control.End
+
+program.sub.form1_unload.end
+
+
+program.sub.exitbut_click.start
+Function.Intrinsic.Control.End
+
+program.sub.exitbut_click.end
+
+
+program.sub.savebut_click.start
+Variable.Local.sqlInsert.Declare(String)
+Variable.Local.sqlUpdate.Declare(String)
+Variable.Local.newDesc.Declare(String)
+
+
+Function.Intrinsic.Control.If(V.Global.currPart,"<>","")
+	'Update existing part description
+	Function.Intrinsic.String.Concat("SELECT * FROM  ATG_96_INV_PODESC WHERE PART='",V.Global.currPart,"'"," AND LOCATION='",V.Global.Loc,"'",V.Local.sqlUpdate)
+	Function.ODBC.Connection!conx.OpenRecordsetRW("rstUpdate",V.Local.sqlUpdate)
+	Function.Intrinsic.Control.If(V.ODBC.conx!rstUpdate.EOF,"=",False)
+		Function.Intrinsic.String.UCase(V.Screen.Form1!AltDesctxt.Text,V.Local.newDesc)
+		Function.ODBC.conx!rstUpdate.Set!ALT_PODESC(V.Local.newDesc)
+		Function.ODBC.conx!rstUpdate.Update
+		Function.Intrinsic.UI.Msgbox("Description Saved!","Alt Description")
+	Function.Intrinsic.Control.EndIf
+Function.Intrinsic.Control.Else
+	'Insert new record into ATG_96_INV_PODESC Table
+	Variable.Global.currPart.Set(V.Passed.000007)
+	Variable.Global.Loc.Set(V.Passed.000009)
+	Function.Intrinsic.String.Replace(V.Global.currPart,"'","''",V.Global.currPart)
+	Function.Intrinsic.String.UCase(V.Screen.Form1!AltDesctxt.Text,V.Local.newDesc)
+	Function.Intrinsic.String.Replace(V.Local.newDesc,"'","''",V.Local.newDesc)
+	Function.Intrinsic.String.Concat("INSERT INTO ATG_96_INV_PODESC (PART,LOCATION,ALT_PODESC) VALUES('",V.Global.currPart,"'",",'",V.Global.Loc,"',","'",V.Local.newDesc,"')",V.Local.sqlInsert)
+	Function.ODBC.Connection!conx.OpenRecordsetRW("rstInsert",V.Local.sqlInsert)
+	Function.Intrinsic.UI.Msgbox("Description Saved!","Alt Description")
+	'Function.ODBC.conx!rstInsert.AddNew
+Function.Intrinsic.Control.EndIf
+		
+Function.Intrinsic.Control.End
+
+
+program.sub.savebut_click.end
+
+
+
